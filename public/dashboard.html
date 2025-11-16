@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gym Schedule Generator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">💪 Gym Schedule Generator</div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                <li><a href="generator.html">Generate Plan</a></li>
+                <li><a href="plan.html">My Schedule</a></li>
+                <li><a href="progress.html">Log Progress</a></li>
+                <li><a href="charts.html">Charts</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome, <span id="userName"></span>! 👋</h1>
+                <p>Here's your fitness overview</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-content">
+                        <h3 id="scheduleCount">0</h3>
+                        <p>Workout Plans</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3 id="progressCount">0</h3>
+                        <p>Progress Entries</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⚖️</div>
+                    <div class="stat-content">
+                        <h3 id="latestWeight">--</h3>
+                        <p>Current Weight (kg)</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <h3 id="weightChange">--</h3>
+                        <p>Weight Change (kg)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-grid">
+                    <a href="/generator.html" class="action-card">
+                        <div class="action-icon">🎯</div>
+                        <h3>Generate New Plan</h3>
+                        <p>Create a personalized workout schedule</p>
+                    </a>
+
+                    <a href="/plan.html" class="action-card">
+                        <div class="action-icon">📋</div>
+                        <h3>View Schedule</h3>
+                        <p>Check your current workout plan</p>
+                    </a>
+
+                    <a href="/progress.html" class="action-card">
+                        <div class="action-icon">✍️</div>
+                        <h3>Log Progress</h3>
+                        <p>Record your daily workout data</p>
+                    </a>
+
+                    <a href="/charts.html" class="action-card">
+                        <div class="action-icon">📊</div>
+                        <h3>View Analytics</h3>
+                        <p>Visualize your fitness journey</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dashboard-info">
+                <h2>Your Profile</h2>
+                <div class="info-card">
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span id="userEmail"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Age:</span>
+                        <span id="userAge"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender:</span>
+                        <span id="userGender"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Experience:</span>
+                        <span id="userExperience"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Check authentication
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) {
+            window.location.href = '/login.html';
+        }
+
+        // Display user info
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('userAge').textContent = user.age || 'Not set';
+        document.getElementById('userGender').textContent = user.gender || 'Not set';
+        document.getElementById('userExperience').textContent = user.experienceLevel || 'Not set';
+
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                // Get schedule count
+                const schedules = await fetch(`/schedules/user/${user.userId}`);
+                const scheduleData = await schedules.json();
+                document.getElementById('scheduleCount').textContent = scheduleData.length > 0 ? '1' : '0';
+
+                // Get progress stats
+                const progressStats = await fetch(`/progress/stats/${user.userId}`);
+                const stats = await progressStats.json();
+                
+                document.getElementById('progressCount').textContent = stats.totalEntries;
+                document.getElementById('latestWeight').textContent = stats.latestWeight ? stats.latestWeight.toFixed(1) : '--';
+                document.getElementById('weightChange').textContent = stats.weightChange ? 
+                    (stats.weightChange > 0 ? '+' : '') + stats.weightChange : '--';
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        loadStats();
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+</html>
